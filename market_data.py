@@ -380,24 +380,19 @@ class MarketDataService:
                             if saved:
                                 saved_count += 1
                                 saved_buckets.append(rec.bucket_start_ms)
-                            if is_opening_price:
-                                logger.info(
-                                    "Captured market-opening price_to_beat — symbol=%s source_ts=%d bucket_ms=%d price=%.8f",
-                                    rec.symbol,
-                                    rec.source_timestamp,
-                                    rec.bucket_start_ms,
-                                    rec.price_to_beat,
-                                )
+                            if is_opening_price and current_minute_record is None:
+                                # First opening-window price in this batch — use it.
+                                # Subsequent updates within the same window are ignored
+                                # so we always use the price closest to market open.
                                 current_minute_record = rec
-                            else:
-                                logger.debug(
-                                    "Chainlink price not in opening window — symbol=%s source_ts=%d bucket_ms=%d market_bucket_ms=%d price=%.8f (skipped for price_to_beat)",
-                                    rec.symbol,
-                                    rec.source_timestamp,
-                                    rec.bucket_start_ms,
-                                    current_bucket_ms,
-                                    rec.price_to_beat,
-                                )
+                                if saved:
+                                    logger.info(
+                                        "Captured market-opening price_to_beat — symbol=%s source_ts=%d bucket_ms=%d price=%.8f",
+                                        rec.symbol,
+                                        rec.source_timestamp,
+                                        rec.bucket_start_ms,
+                                        rec.price_to_beat,
+                                    )
                         if saved_count:
                             logger.info("Processed RTDS price batch — records=%d saved_buckets=%s saved=%d", len(records), saved_buckets, saved_count)
                         if current_minute_record is not None:
