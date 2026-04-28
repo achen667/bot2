@@ -14,7 +14,7 @@ import aiohttp
 
 from .config import BotConfig
 from .models import MarketSnapshot
-from .price_to_beat import PriceToBeatRecord, PriceToBeatStore, bucket_start_ms, extract_records, normalize_symbol
+from .price_to_beat import BUCKET_MS, PriceToBeatRecord, PriceToBeatStore, bucket_start_ms, extract_records, normalize_symbol
 
 logger = logging.getLogger(__name__)
 
@@ -198,7 +198,18 @@ class MarketDataService:
             p2b = buffered_p2b
         if self._latest_price_to_beat is not None and self._latest_price_to_beat.bucket_start_ms == market_bucket_ms:
             p2b = self._latest_price_to_beat
-        if p2b is None or p2b.bucket_start_ms != market_bucket_ms:
+        # Hard check: source_timestamp must be within the opening bucket window.
+        # Rejects stale store records whose bucket key matched but whose
+        # source_timestamp was actually from a later minute.
+        if p2b is not None and not (market_bucket_ms <= p2b.source_timestamp < market_bucket_ms + BUCKET_MS):
+            logger.warning(
+                "Discarding price_to_beat with source_ts outside opening window — symbol=%s market_bucket_ms=%d source_ts=%d",
+                self.chainlink_symbol,
+                market_bucket_ms,
+                p2b.source_timestamp,
+            )
+            p2b = None
+        if p2b is None:
             now = datetime.now(timezone.utc)
             if self._last_waiting_p2b_bucket_ms != market_bucket_ms or now.timestamp() - self._last_p2b_wait_log_ts >= 2:
                 latest_seen = self._latest_price_to_beat.source_timestamp if self._latest_price_to_beat else None
@@ -362,19 +373,31 @@ class MarketDataService:
                                 rec.price_to_beat,
                                 current_bucket_ms,
                             )
+                            is_opening_price = (
+                                current_bucket_ms <= rec.source_timestamp < current_bucket_ms + BUCKET_MS
+                            )
                             saved = self.price_store.add(rec)
                             if saved:
                                 saved_count += 1
                                 saved_buckets.append(rec.bucket_start_ms)
+                            if is_opening_price:
                                 logger.info(
-                                    "Captured price_to_beat — symbol=%s source_ts=%d bucket_ms=%d price=%.8f",
+                                    "Captured market-opening price_to_beat — symbol=%s source_ts=%d bucket_ms=%d price=%.8f",
                                     rec.symbol,
                                     rec.source_timestamp,
                                     rec.bucket_start_ms,
                                     rec.price_to_beat,
                                 )
-                            if rec.bucket_start_ms == current_bucket_ms:
                                 current_minute_record = rec
+                            else:
+                                logger.debug(
+                                    "Chainlink price not in opening window — symbol=%s source_ts=%d bucket_ms=%d market_bucket_ms=%d price=%.8f (skipped for price_to_beat)",
+                                    rec.symbol,
+                                    rec.source_timestamp,
+                                    rec.bucket_start_ms,
+                                    current_bucket_ms,
+                                    rec.price_to_beat,
+                                )
                         if saved_count:
                             logger.info("Processed RTDS price batch — records=%d saved_buckets=%s saved=%d", len(records), saved_buckets, saved_count)
                         if current_minute_record is not None:
