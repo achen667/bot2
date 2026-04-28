@@ -354,17 +354,24 @@ class MarketDataService:
                         saved_buckets: list[int] = []
                         for rec in records:
                             self._buffer_chainlink_record(rec)
+                            logger.debug(
+                                "Chainlink price received — symbol=%s source_ts=%d bucket_ms=%d price=%.8f market_bucket_ms=%d",
+                                rec.symbol,
+                                rec.source_timestamp,
+                                rec.bucket_start_ms,
+                                rec.price_to_beat,
+                                current_bucket_ms,
+                            )
                             saved = self.price_store.add(rec)
                             if saved:
                                 saved_count += 1
                                 saved_buckets.append(rec.bucket_start_ms)
                                 logger.info(
-                                    "Captured minute price_to_beat — symbol=%s bucket=%s price=%.8f source_ts=%s saved=%s",
+                                    "Captured price_to_beat — symbol=%s source_ts=%d bucket_ms=%d price=%.8f",
                                     rec.symbol,
-                                    rec.bucket_start,
-                                    rec.price_to_beat,
                                     rec.source_timestamp,
-                                    saved,
+                                    rec.bucket_start_ms,
+                                    rec.price_to_beat,
                                 )
                             if rec.bucket_start_ms == current_bucket_ms:
                                 current_minute_record = rec

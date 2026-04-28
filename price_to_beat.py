@@ -100,7 +100,7 @@ def _extract_one(message: dict[str, Any], default_symbol: Optional[str] = None, 
 
     symbol = str(payload.get("symbol") or payload.get("asset") or payload.get("ticker") or default_symbol or "").lower()
     value = payload.get("value") or payload.get("price") or payload.get("answer")
-    source_timestamp = payload.get("timestamp") or payload.get("ts") or payload.get("updatedAt") or message.get("timestamp") or message.get("ts")
+    source_timestamp = payload.get("timestamp") or payload.get("ts") or payload.get("updatedAt")
     if not symbol or value is None or source_timestamp is None:
         return None
     try:
