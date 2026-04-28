@@ -82,6 +82,7 @@ class MarketDataService:
         self._latest_price_to_beat: Optional[PriceToBeatRecord] = None
         self._close_buf: Deque[float] = deque(maxlen=61)
         self._chainlink_buf: Deque[Tuple[float, PriceToBeatRecord]] = deque()
+        self._latest_chainlink_record: Optional[PriceToBeatRecord] = None
         self._active_market_start_ts = self.compute_active_market_start_ts()
         self._market_meta = None
         self.price_store = PriceToBeatStore(config.price_to_beat_log_path)
@@ -198,19 +199,37 @@ class MarketDataService:
             p2b = self._latest_price_to_beat
         if p2b is None or p2b.bucket_start_ms != bucket_ms:
             now = datetime.now(timezone.utc)
-            if self._last_waiting_p2b_bucket_ms != bucket_ms or now.timestamp() - self._last_p2b_wait_log_ts >= 2:
-                latest_seen = self._latest_price_to_beat.source_timestamp if self._latest_price_to_beat else None
-                logger.info(
-                    "Waiting for minute-aligned price_to_beat — symbol=%s required_bucket_ms=%d market_ts=%s latest_seen_source_ts=%s store_records=%d",
-                    self.chainlink_symbol,
-                    bucket_ms,
-                    self._latest_polymarket.ts.isoformat(),
-                    latest_seen,
-                    len(self.price_store.records),
-                )
-                self._last_waiting_p2b_bucket_ms = bucket_ms
-                self._last_p2b_wait_log_ts = now.timestamp()
-            return None
+            grace_elapsed = now.timestamp() - bucket_ms / 1000.0
+            if 0.0 <= grace_elapsed <= self.config.price_to_beat_grace_sec and self._latest_chainlink_record is not None:
+                # Chainlink price for the new minute hasn't arrived yet; use the
+                # most recently received price as a temporary proxy until the
+                # exact-bucket price comes in.
+                if self._last_waiting_p2b_bucket_ms != bucket_ms or now.timestamp() - self._last_p2b_wait_log_ts >= 2:
+                    logger.info(
+                        "Grace-period fallback price_to_beat — symbol=%s required_bucket_ms=%d using_bucket_ms=%d grace_elapsed=%.1fs price=%.8f",
+                        self.chainlink_symbol,
+                        bucket_ms,
+                        self._latest_chainlink_record.bucket_start_ms,
+                        grace_elapsed,
+                        self._latest_chainlink_record.price_to_beat,
+                    )
+                    self._last_waiting_p2b_bucket_ms = bucket_ms
+                    self._last_p2b_wait_log_ts = now.timestamp()
+                p2b = self._latest_chainlink_record
+            else:
+                if self._last_waiting_p2b_bucket_ms != bucket_ms or now.timestamp() - self._last_p2b_wait_log_ts >= 2:
+                    latest_seen = self._latest_price_to_beat.source_timestamp if self._latest_price_to_beat else None
+                    logger.info(
+                        "Waiting for minute-aligned price_to_beat — symbol=%s required_bucket_ms=%d market_ts=%s latest_seen_source_ts=%s store_records=%d",
+                        self.chainlink_symbol,
+                        bucket_ms,
+                        self._latest_polymarket.ts.isoformat(),
+                        latest_seen,
+                        len(self.price_store.records),
+                    )
+                    self._last_waiting_p2b_bucket_ms = bucket_ms
+                    self._last_p2b_wait_log_ts = now.timestamp()
+                return None
         elapsed = (ts - start).total_seconds() / max((end - start).total_seconds(), 1.0)
         elapsed = min(max(elapsed, 0.0), 1.0)
         ret = self._latest_binance.close / p2b.price_to_beat - 1.0 if p2b.price_to_beat > 0 else None
@@ -352,6 +371,7 @@ class MarketDataService:
                         saved_buckets: list[int] = []
                         for rec in records:
                             self._buffer_chainlink_record(rec)
+                            self._latest_chainlink_record = rec
                             saved = self.price_store.add(rec)
                             if saved:
                                 saved_count += 1
