@@ -1,0 +1,11 @@
+time_bucket_fine,fair_up_prob,count,model,fallback_level,keys
+0.0%..10.0%,0.5118912813416846,142122,fine_time_return_z,3,time_bucket_fine
+10.0%..20.0%,0.512643612685334,128602,fine_time_return_z,3,time_bucket_fine
+20.0%..30.0%,0.5071260616909752,138875,fine_time_return_z,3,time_bucket_fine
+30.0%..40.0%,0.5116965267714872,117857,fine_time_return_z,3,time_bucket_fine
+40.0%..50.0%,0.5034531314759043,132698,fine_time_return_z,3,time_bucket_fine
+50.0%..60.0%,0.5111106522351969,123533,fine_time_return_z,3,time_bucket_fine
+60.0%..70.0%,0.5132383584385762,138082,fine_time_return_z,3,time_bucket_fine
+70.0%..80.0%,0.5152041119935752,130026,fine_time_return_z,3,time_bucket_fine
+80.0%..90.0%,0.5140512167104415,158204,fine_time_return_z,3,time_bucket_fine
+90.0%..100.0%,0.5204393175835951,181552,fine_time_return_z,3,time_bucket_fine

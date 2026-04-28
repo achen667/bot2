@@ -1,0 +1,14 @@
+{
+  "model": "fine_time_return_z",
+  "description": "Normalizes the early move by recent 60-minute volatility.",
+  "estimator": "lookup_smoothed",
+  "global_prior": 0.5123987550582049,
+  "min_count": 25,
+  "prior_weight": 25.0,
+  "train_elapsed_cutoff": null,
+  "fallback_order": [
+    "time_bucket_fine+return_z_bucket",
+    "return_z_bucket",
+    "time_bucket_fine"
+  ]
+}

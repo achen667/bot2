@@ -1,0 +1,37 @@
+model,artifact_type,fallback_level,keys,rows,path,description
+baseline_time_sign_raw,diagnostics,,,3,baseline_time_sign_raw_diagnostics.csv,Current pipeline idea: early states grouped by coarse time bucket and return sign.
+baseline_time_sign_raw,metadata,,,1,baseline_time_sign_raw_metadata.json,Current pipeline idea: early states grouped by coarse time bucket and return sign.
+baseline_time_sign_raw,lookup_table,1.0,time_bucket_coarse+move_sign,4,baseline_time_sign_raw_lookup_level_1.csv,Current pipeline idea: early states grouped by coarse time bucket and return sign.
+baseline_time_sign_raw,lookup_table,2.0,move_sign,3,baseline_time_sign_raw_lookup_level_2.csv,Current pipeline idea: early states grouped by coarse time bucket and return sign.
+baseline_time_sign_raw,lookup_table,3.0,time_bucket_coarse,2,baseline_time_sign_raw_lookup_level_3.csv,Current pipeline idea: early states grouped by coarse time bucket and return sign.
+time_sign_smoothed,diagnostics,,,3,time_sign_smoothed_diagnostics.csv,Baseline lookup with Beta-style shrinkage toward the training base rate.
+time_sign_smoothed,metadata,,,1,time_sign_smoothed_metadata.json,Baseline lookup with Beta-style shrinkage toward the training base rate.
+time_sign_smoothed,lookup_table,1.0,time_bucket_coarse+move_sign,4,time_sign_smoothed_lookup_level_1.csv,Baseline lookup with Beta-style shrinkage toward the training base rate.
+time_sign_smoothed,lookup_table,2.0,move_sign,3,time_sign_smoothed_lookup_level_2.csv,Baseline lookup with Beta-style shrinkage toward the training base rate.
+time_sign_smoothed,lookup_table,3.0,time_bucket_coarse,2,time_sign_smoothed_lookup_level_3.csv,Baseline lookup with Beta-style shrinkage toward the training base rate.
+fine_time_return_bucket,diagnostics,,,3,fine_time_return_bucket_diagnostics.csv,"Uses return magnitude buckets rather than sign only, with finer lifecycle buckets."
+fine_time_return_bucket,metadata,,,1,fine_time_return_bucket_metadata.json,"Uses return magnitude buckets rather than sign only, with finer lifecycle buckets."
+fine_time_return_bucket,lookup_table,1.0,time_bucket_fine+return_bucket,36,fine_time_return_bucket_lookup_level_1.csv,"Uses return magnitude buckets rather than sign only, with finer lifecycle buckets."
+fine_time_return_bucket,lookup_table,2.0,return_bucket,5,fine_time_return_bucket_lookup_level_2.csv,"Uses return magnitude buckets rather than sign only, with finer lifecycle buckets."
+fine_time_return_bucket,lookup_table,3.0,time_bucket_fine,10,fine_time_return_bucket_lookup_level_3.csv,"Uses return magnitude buckets rather than sign only, with finer lifecycle buckets."
+fine_time_return_z,diagnostics,,,3,fine_time_return_z_diagnostics.csv,Normalizes the early move by recent 60-minute volatility.
+fine_time_return_z,metadata,,,1,fine_time_return_z_metadata.json,Normalizes the early move by recent 60-minute volatility.
+fine_time_return_z,lookup_table,1.0,time_bucket_fine+return_z_bucket,70,fine_time_return_z_lookup_level_1.csv,Normalizes the early move by recent 60-minute volatility.
+fine_time_return_z,lookup_table,2.0,return_z_bucket,10,fine_time_return_z_lookup_level_2.csv,Normalizes the early move by recent 60-minute volatility.
+fine_time_return_z,lookup_table,3.0,time_bucket_fine,10,fine_time_return_z_lookup_level_3.csv,Normalizes the early move by recent 60-minute volatility.
+implied_plus_return_lookup,diagnostics,,,4,implied_plus_return_lookup_diagnostics.csv,Conditions on market-implied probability to test incremental value beyond mid_price_up.
+implied_plus_return_lookup,metadata,,,1,implied_plus_return_lookup_metadata.json,Conditions on market-implied probability to test incremental value beyond mid_price_up.
+implied_plus_return_lookup,lookup_table,1.0,prob_bucket+time_bucket_fine+return_bucket,262,implied_plus_return_lookup_lookup_level_1.csv,Conditions on market-implied probability to test incremental value beyond mid_price_up.
+implied_plus_return_lookup,lookup_table,2.0,prob_bucket+return_bucket,39,implied_plus_return_lookup_lookup_level_2.csv,Conditions on market-implied probability to test incremental value beyond mid_price_up.
+implied_plus_return_lookup,lookup_table,3.0,prob_bucket+time_bucket_fine,100,implied_plus_return_lookup_lookup_level_3.csv,Conditions on market-implied probability to test incremental value beyond mid_price_up.
+implied_plus_return_lookup,lookup_table,4.0,prob_bucket,10,implied_plus_return_lookup_lookup_level_4.csv,Conditions on market-implied probability to test incremental value beyond mid_price_up.
+vol_distance_lookup,diagnostics,,,4,vol_distance_lookup_diagnostics.csv,Volatility-aware distance-to-threshold variant.
+vol_distance_lookup,metadata,,,1,vol_distance_lookup_metadata.json,Volatility-aware distance-to-threshold variant.
+vol_distance_lookup,lookup_table,1.0,time_bucket_fine+distance_z_bucket+vol_regime,134,vol_distance_lookup_lookup_level_1.csv,Volatility-aware distance-to-threshold variant.
+vol_distance_lookup,lookup_table,2.0,time_bucket_fine+distance_z_bucket,70,vol_distance_lookup_lookup_level_2.csv,Volatility-aware distance-to-threshold variant.
+vol_distance_lookup,lookup_table,3.0,distance_z_bucket+vol_regime,18,vol_distance_lookup_lookup_level_3.csv,Volatility-aware distance-to-threshold variant.
+vol_distance_lookup,lookup_table,4.0,distance_z_bucket,10,vol_distance_lookup_lookup_level_4.csv,Volatility-aware distance-to-threshold variant.
+logit_market_only,diagnostics,,,1,logit_market_only_diagnostics.csv,Control model using only market-implied probability and lifecycle time.
+logit_market_only,logistic_coefficients,,mid_price_up+elapsed_fraction,3,logit_market_only_coefficients.csv,Control model using only market-implied probability and lifecycle time.
+logit_market_underlying,diagnostics,,,1,logit_market_underlying_diagnostics.csv,Tests whether underlying movement adds value beyond the market midpoint.
+logit_market_underlying,logistic_coefficients,,mid_price_up+elapsed_fraction+underlying_return_since_start+distance_to_threshold_z+vol_60m+trend_60m+return_x_time_remaining+distance_z_x_time_remaining,9,logit_market_underlying_coefficients.csv,Tests whether underlying movement adds value beyond the market midpoint.

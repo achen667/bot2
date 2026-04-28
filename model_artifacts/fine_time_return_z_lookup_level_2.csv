@@ -1,0 +1,11 @@
+return_z_bucket,fair_up_prob,count,model,fallback_level,keys
+<= -8,0.13343717579640751,71,fine_time_return_z,2,return_z_bucket
+-8..-4,0.0023612845855216814,5400,fine_time_return_z,2,return_z_bucket
+-4..-2,0.10619002580623325,63482,fine_time_return_z,2,return_z_bucket
+-2..-1,0.20855616564149265,156004,fine_time_return_z,2,return_z_bucket
+-1..0,0.457378993149124,645166,fine_time_return_z,2,return_z_bucket
+0..1,0.6639730131480739,307311,fine_time_return_z,2,return_z_bucket
+1..2,0.7853661507767293,148452,fine_time_return_z,2,return_z_bucket
+2..4,0.8731061129762384,60137,fine_time_return_z,2,return_z_bucket
+4..8,0.997219470780973,5438,fine_time_return_z,2,return_z_bucket
+> 8,0.8939997293604792,90,fine_time_return_z,2,return_z_bucket
